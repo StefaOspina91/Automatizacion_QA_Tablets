@@ -31,7 +31,7 @@ public class LoginTest extends BaseTest {
             );
             qualityControlBtn.click();
 
-            // 👉 Paso 2: Ingresar usuario y contraseña - WF
+            // 👉 Paso 2: Ingresar usuario y contraseña - Usuario se crean en wf
             MobileElement username = (MobileElement) wait.until(
                     ExpectedConditions.presenceOfElementLocated(
                             MobileBy.xpath("//android.widget.EditText[@text='User']")
