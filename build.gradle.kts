@@ -22,7 +22,12 @@ dependencies {
     // OpenCV .jar local
     implementation(files("libs/opencv-481.jar"))
     testImplementation(files("libs/opencv-481.jar"))
+
+    // Driver JDBC para SQL Server
+    implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre8")
 }
+
+
 
 
 tasks.test {
