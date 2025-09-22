@@ -2,6 +2,7 @@ package org.example;
 
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -11,33 +12,35 @@ import java.time.Duration;
 public class QualityControlReportsPage {
 
     private final AndroidDriver driver;
-    private final AppiumBy companySelector = (AppiumBy) AppiumBy.id("com.ght.QualityManagementApp:id/compania");
+    private final WebDriverWait wait;
+
+    // Usar By directamente
+    private final By companyDropdown = AppiumBy.xpath("//android.widget.TextView[@text='Compañía']");
 
     public QualityControlReportsPage(AndroidDriver driver) {
         this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(40));
     }
 
     public void selectCompany(String companyName) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
-            // 👉 Abrir desplegable
-            WebElement selectorElement = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(companySelector)
+            // 👉 Esperar dropdown
+            WebElement dropdown = wait.until(
+                    ExpectedConditions.elementToBeClickable(companyDropdown)
             );
-            selectorElement.click();
-            System.out.println("✅ Selector de compañía clickeado.");
+            dropdown.click();
+            System.out.println("✅ Dropdown 'Compañía' abierto.");
 
-            // 👉 Seleccionar la compañía (ej. "BQC")
-            AppiumBy companyOption = (AppiumBy) AppiumBy.xpath("//android.widget.TextView[@text='" + companyName + "']");
+            // 👉 Seleccionar compañía
             WebElement targetCompany = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(companyOption)
+                    ExpectedConditions.elementToBeClickable(
+                            AppiumBy.xpath("//android.view.ViewGroup[@content-desc='" + companyName + "']")
+                    )
             );
             targetCompany.click();
-            System.out.println("✅ Compañía '" + companyName + "' seleccionada con éxito.");
-
+            System.out.println("✅ Compañía '" + companyName + "' seleccionada.");
         } catch (Exception e) {
-            System.err.println("❌ Error al seleccionar la compañía: " + e.getMessage());
+            System.err.println("❌ Error al seleccionar compañía: " + e.getMessage());
             throw e;
         }
     }
