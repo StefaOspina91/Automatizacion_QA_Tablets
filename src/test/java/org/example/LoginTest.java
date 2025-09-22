@@ -33,8 +33,8 @@ public class LoginTest extends BaseTest {
         }
     }
 
-   /* @AfterEach
+   @AfterEach
     public void tearDownTest() {
         tearDown();
-    }*/
+    }
 }

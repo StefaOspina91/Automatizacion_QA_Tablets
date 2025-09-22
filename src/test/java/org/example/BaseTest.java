@@ -29,8 +29,10 @@ public class BaseTest {
         }
     }
 
+    private boolean cerrarAlFinal = false;
+
     public void tearDown() {
-        if (driver != null) {
+        if (driver != null && cerrarAlFinal) {
             driver.quit();
         }
     }
