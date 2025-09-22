@@ -1,19 +1,21 @@
 package org.example;
 
 import org.openqa.selenium.WebElement;
+import io.appium.java_client.MobileBy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import io.appium.java_client.AppiumBy;
+
 import java.time.Duration;
 
 public class LoginTest extends BaseTest {
 
     @BeforeEach
     public void setupTest() {
-        setUp();
+        setUp(); // Inicia Appium y el driver
     }
 
     @Test
@@ -21,41 +23,45 @@ public class LoginTest extends BaseTest {
         try {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-            // 👉 Paso 1: Clic en el botón "Quality Control"
-            WebElement qualityControlBtn = wait.until(
+            // 👉 1. Clic en módulo "Quality Control"
+            WebElement  qualityControlBtn = (WebElement ) wait.until(
                     ExpectedConditions.presenceOfElementLocated(
-                            AppiumBy.androidUiAutomator("new UiSelector().className(\"android.widget.ImageView\").instance(1)")
+                            MobileBy.AndroidUIAutomator(
+                                    "new UiSelector().className(\"android.widget.ImageView\").instance(1)"
+                            )
                     )
             );
             qualityControlBtn.click();
 
-            // 👉 Paso 2: Ingresar usuario y contraseña
-            WebElement username = wait.until(
+            //  2. Llenar usuario y contraseña
+            WebElement  username = (WebElement ) wait.until(
                     ExpectedConditions.presenceOfElementLocated(
-                            AppiumBy.xpath("//android.widget.EditText[@text='User']")
+                            MobileBy.xpath("//android.widget.EditText[@text='User']")
                     )
             );
-            WebElement password = driver.findElement(AppiumBy.xpath("//android.widget.EditText[@text='Password']"));
-            WebElement loginBtn = driver.findElement(AppiumBy.androidUiAutomator("new UiSelector().textContains(\"Iniciar Sesión\")"));
+            WebElement  password = (WebElement ) driver.findElement(
+                    MobileBy.xpath("//android.widget.EditText[@text='Password']")
+            );
+            WebElement  loginBtn = (WebElement ) driver.findElement(
+                    MobileBy.AndroidUIAutomator("new UiSelector().textContains(\"Iniciar Sesión\")")
+            );
 
             username.sendKeys("StefaOspina");
             password.sendKeys("sospina");
             loginBtn.click();
+            System.out.println("✅ Login realizado correctamente");
 
-            System.out.println("✔ Credenciales ingresadas y login ejecutado");
+            // 👉 3. Manejar permiso (seleccionar "While using the app")
+            WebElement  allowPermission = (WebElement ) wait.until(
+                    ExpectedConditions.presenceOfElementLocated(
+                            MobileBy.xpath("//android.widget.Button[@text='While using the app']")
+                    )
+            );
+            allowPermission.click();
+            System.out.println("✅ Permiso aceptado correctamente");
 
-            // 👉 Paso 3: Aceptar permisos si aparecen
-            try {
-                WebElement permisoBtn = wait.until(
-                        ExpectedConditions.presenceOfElementLocated(
-                                AppiumBy.androidUiAutomator("new UiSelector().text(\"While using the app\")")
-                        )
-                );
-                permisoBtn.click();
-                System.out.println("✔ Permiso concedido");
-            } catch (Exception ex) {
-                System.out.println("ℹ No se mostró solicitud de permisos");
-            }
+            // Aquí podrías seguir con el flujo llamando otras clases
+          new QualityControlReportsPage(driver).selectCompany("BQC");
 
         } catch (Exception e) {
             System.err.println("❌ Error en el flujo de login: " + e.getMessage());
@@ -64,6 +70,7 @@ public class LoginTest extends BaseTest {
 
     @AfterEach
     public void tearDownTest() {
+        // No cerrar aún si deseas seguir navegando por otras pantallas
         // tearDown();
     }
 }

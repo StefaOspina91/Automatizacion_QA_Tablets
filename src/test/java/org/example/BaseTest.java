@@ -4,7 +4,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import io.appium.java_client.MobileBy;
 import java.time.Duration;
-import io.appium.java_client.MobileElement;
+import org.openqa.selenium.WebElement;
 import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
@@ -12,7 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class BaseTest {
-    protected AndroidDriver<MobileElement> driver;
+    protected AndroidDriver driver;
 
     public void setUp() {
         DesiredCapabilities caps = new DesiredCapabilities();
@@ -23,7 +23,7 @@ public class BaseTest {
         caps.setCapability("appActivity", "com.ght.QualityManagementApp.MainActivity");
 
         try {
-            driver = new AndroidDriver<>(new URL("http://127.0.0.1:4723/"), caps);
+            driver = new AndroidDriver(new URL("http://127.0.0.1:4723/"), caps);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
