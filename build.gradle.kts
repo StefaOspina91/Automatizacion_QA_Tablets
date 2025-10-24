@@ -28,13 +28,33 @@ dependencies {
 
     // SQL Server JDBC driver
     implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.0.jre8")
+
+    // Pool de conexiones
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    // Logs (API estándar)
+    implementation("org.slf4j:slf4j-api:2.0.13")
+
+    // Drivers (SQL)
+    runtimeOnly("com.microsoft.sqlserver:mssql-jdbc:12.8.1.jre11") // SQL Server
+
+    // 🧩 Agrega esta línea para habilitar JUnit 4 (que usa @Test)
+    testImplementation("junit:junit:4.13.2")
+
+
+    // 👉 binding para que SLF4J no quede en NOP
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.6")
+
 }
 
 tasks.test {
     useJUnitPlatform()
-}
+    useJUnit() // 👈 importante para JUnit 4 en Gradle 8
+    testLogging {
+        showStandardStreams = true
+        events("passed", "failed", "skipped")
+    }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
 }
-
