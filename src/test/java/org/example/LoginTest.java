@@ -14,22 +14,22 @@ public class LoginTest extends BaseTest {
     @Test
     public void testFlujoCompleto() {
         try {
-            // 👉 Page Objects
+            //  Page Objects
             AppLauncherPage launcherPage = new AppLauncherPage(driver);
             LoginPage loginPage = new LoginPage(driver);
             QualityControlReportsPage reportsPage = new QualityControlReportsPage(driver);
 
-            // 👉 1. Seleccionar módulo Quality Control
+            //  1. Seleccionar módulo Quality Control
             launcherPage.selectQualityControlModule();
 
-            // 👉 2. Login + permisos
+            //  2. Login + permisos
             loginPage.login("StefaOspina", "sospina");
 
-            // 👉 3. Selección de compañía
+            //  3. Selección de compañía
             reportsPage.selectCompany("BQC");
 
         } catch (Exception e) {
-            System.err.println("❌ Error en el flujo de prueba: " + e.getMessage());
+            System.err.println(" Error en el flujo de prueba: " + e.getMessage());
         }
     }
 

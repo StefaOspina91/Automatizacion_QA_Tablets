@@ -1,6 +1,7 @@
 package org.example;
 
-import io.appium.java_client.MobileBy;
+
+import io.appium.java_client.AppiumBy;
 import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -14,8 +15,8 @@ public class AppLauncherPage {
     private final WebDriverWait wait;
 
     // Botón "Quality Control" → es un ImageView en posición 1
-    private final By qualityControlModule = MobileBy.AndroidUIAutomator(
-            "new UiSelector().className(\"android.widget.ImageView\").instance(1)"
+    private final By qualityControlModule = AppiumBy.androidUIAutomator(
+            "new UiSelector().textContains(\"android.widget.ImageView\").instance(1)"
     );
 
     public AppLauncherPage(AndroidDriver driver) {
@@ -29,9 +30,9 @@ public class AppLauncherPage {
                     ExpectedConditions.elementToBeClickable(qualityControlModule)
             );
             moduleBtn.click();
-            System.out.println("✅ Módulo 'Quality Control' seleccionado.");
+            System.out.println(" Módulo 'Quality Control' seleccionado.");
         } catch (Exception e) {
-            System.err.println("❌ Error al seleccionar módulo Quality Control: " + e.getMessage());
+            System.err.println(" Error al seleccionar módulo Quality Control: " + e.getMessage());
             throw e;
         }
     }

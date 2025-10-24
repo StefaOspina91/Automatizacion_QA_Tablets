@@ -1,7 +1,6 @@
 package org.example;
 
 import io.appium.java_client.AppiumBy;
-import io.appium.java_client.MobileBy;
 import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -18,7 +17,7 @@ public class LoginPage {
     // Locators
     private final By usernameField = AppiumBy.xpath("//android.widget.EditText[@text='User']");
     private final By passwordField = AppiumBy.xpath("//android.widget.EditText[@text='Password']");
-    private final By loginButton = MobileBy.AndroidUIAutomator("new UiSelector().textContains(\"Iniciar Sesión\")");
+    private final By loginButton = AppiumBy.androidUIAutomator("new UiSelector().textContains(\"Iniciar Sesión\")");
     private final By permissionButton = AppiumBy.xpath("//android.widget.Button[@text='While using the app']");
 
     public LoginPage(AndroidDriver driver) {
@@ -28,7 +27,7 @@ public class LoginPage {
 
     public void login(String username, String password) {
         try {
-            // 👉 1. Usuario y contraseña
+            //  1. Usuario y contraseña
             WebElement userInput = wait.until(ExpectedConditions.presenceOfElementLocated(usernameField));
             WebElement passInput = driver.findElement(passwordField);
             WebElement loginBtn = driver.findElement(loginButton);
@@ -36,17 +35,17 @@ public class LoginPage {
             userInput.sendKeys(username);
             passInput.sendKeys(password);
             loginBtn.click();
-            System.out.println("✅ Login realizado correctamente.");
+            System.out.println(" Login realizado correctamente.");
 
-            // 👉 2. Permiso
+            //  2. Permiso
             WebElement allowPermission = wait.until(
                     ExpectedConditions.presenceOfElementLocated(permissionButton)
             );
             allowPermission.click();
-            System.out.println("✅ Permiso aceptado correctamente.");
+            System.out.println(" Permiso aceptado correctamente.");
 
         } catch (Exception e) {
-            System.err.println("❌ Error en login: " + e.getMessage());
+            System.err.println(" Error en login: " + e.getMessage());
             throw e;
         }
     }

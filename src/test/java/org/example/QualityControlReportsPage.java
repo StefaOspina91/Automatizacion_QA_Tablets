@@ -24,23 +24,23 @@ public class QualityControlReportsPage {
 
     public void selectCompany(String companyName) {
         try {
-            // 👉 Esperar dropdown
+            //  Esperar dropdown
             WebElement dropdown = wait.until(
                     ExpectedConditions.elementToBeClickable(companyDropdown)
             );
             dropdown.click();
-            System.out.println("✅ Dropdown 'Compañía' abierto.");
+            System.out.println(" Dropdown 'Compañía' abierto.");
 
-            // 👉 Seleccionar compañía
+            //  Seleccionar compañía
             WebElement targetCompany = wait.until(
                     ExpectedConditions.elementToBeClickable(
                             AppiumBy.xpath("//android.view.ViewGroup[@content-desc='" + companyName + "']")
                     )
             );
             targetCompany.click();
-            System.out.println("✅ Compañía '" + companyName + "' seleccionada.");
+            System.out.println(" Compañía '" + companyName + "' seleccionada.");
         } catch (Exception e) {
-            System.err.println("❌ Error al seleccionar compañía: " + e.getMessage());
+            System.err.println(" Error al seleccionar compañía: " + e.getMessage());
             throw e;
         }
     }
