@@ -1,46 +1,65 @@
 package org.example.infra.db;
 
-import javax.sql.DataSource;
+import java.io.InputStream;
 import java.sql.*;
 import java.util.*;
 
 public class Db {
-    private final DataSource ds = DbManager.getDataSource();
 
-    public Map<String,Object> queryOne(String sql, Object... params) {
-        List<Map<String,Object>> list = queryList(sql, params);
-        return list.isEmpty() ? Collections.emptyMap() : list.get(0);
-    }
+    private static Properties cargarConfiguracion() {
+        Properties props = new Properties();
+        try (InputStream input = Thread.currentThread()
+                .getContextClassLoader()
+                .getResourceAsStream("DB.properties")) {
 
-    public List<Map<String,Object>> queryList(String sql, Object... params) {
-        try (Connection c = ds.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) ps.setObject(i+1, params[i]);
-            try (ResultSet rs = ps.executeQuery()) {
-                List<Map<String,Object>> rows = new ArrayList<>();
-                ResultSetMetaData md = rs.getMetaData();
-                int cols = md.getColumnCount();
-                while (rs.next()) {
-                    Map<String,Object> row = new LinkedHashMap<>();
-                    for (int i=1;i<=cols;i++) {
-                        row.put(md.getColumnLabel(i), rs.getObject(i));
-                    }
-                    rows.add(row);
-                }
-                return rows;
+            if (input == null) {
+                throw new IllegalStateException(" No se encontró el archivo DB.properties. Verifica que esté en src/main/resources.");
             }
-        } catch (SQLException e) {
-            throw new RuntimeException("Error ejecutando query: " + sql, e);
+            props.load(input);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al cargar DB.properties", e);
+        }
+        return props;
+    }
+
+    public static Connection obtenerConexion() {
+        try {
+            Properties p = cargarConfiguracion();
+            String url = p.getProperty("DB_URL");
+            String user = p.getProperty("DB_USER");
+            String pass = p.getProperty("DB_PASS");
+            String driver = p.getProperty("DB_DRIVER");
+
+            Class.forName(driver);
+            return DriverManager.getConnection(url, user, pass);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al conectar con la base de datos", e);
         }
     }
 
-    public int execute(String sql, Object... params) {
-        try (Connection c = ds.getConnection();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) ps.setObject(i+1, params[i]);
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error ejecutando update: " + sql, e);
+    /** Ejecuta una consulta y devuelve todos los resultados */
+    public static List<Map<String, Object>> ejecutarConsulta(String sql) {
+        List<Map<String, Object>> resultados = new ArrayList<>();
+
+        try (Connection cn = obtenerConexion();
+             PreparedStatement ps = cn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            ResultSetMetaData meta = rs.getMetaData();
+            int columnas = meta.getColumnCount();
+
+            while (rs.next()) {
+                Map<String, Object> fila = new LinkedHashMap<>();
+                for (int i = 1; i <= columnas; i++) {
+                    fila.put(meta.getColumnLabel(i), rs.getObject(i));
+                }
+                resultados.add(fila);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error al ejecutar consulta SQL", e);
         }
+
+        return resultados;
     }
 }
