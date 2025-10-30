@@ -22,12 +22,12 @@ public class LoginPage {
 
     public LoginPage(AndroidDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     public void login(String username, String password) {
         try {
-            //  1. Usuario y contraseña
+            // 1️⃣ Usuario y contraseña
             WebElement userInput = wait.until(ExpectedConditions.presenceOfElementLocated(usernameField));
             WebElement passInput = driver.findElement(passwordField);
             WebElement loginBtn = driver.findElement(loginButton);
@@ -35,14 +35,19 @@ public class LoginPage {
             userInput.sendKeys(username);
             passInput.sendKeys(password);
             loginBtn.click();
-            System.out.println(" Login realizado correctamente.");
+            System.out.println("Login realizado correctamente.");
 
-            //  2. Permiso
-            WebElement allowPermission = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(permissionButton)
-            );
-            allowPermission.click();
-            System.out.println(" Permiso aceptado correctamente.");
+            // 2️⃣ Permiso (solo si aparece)
+            try {
+                WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(5));
+                WebElement allowPermission = shortWait.until(
+                        ExpectedConditions.presenceOfElementLocated(permissionButton)
+                );
+                allowPermission.click();
+                System.out.println(" Permiso aceptado correctamente.");
+            } catch (Exception ignored) {
+                System.out.println(" No apareció el diálogo de permisos, continuando flujo...");
+            }
 
         } catch (Exception e) {
             System.err.println(" Error en login: " + e.getMessage());

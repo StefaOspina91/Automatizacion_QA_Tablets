@@ -11,7 +11,7 @@ public class DbSmokeTest {
     @Test
     public void conectarDirecto() throws Exception {
         // Ajusta SOLO si cambian credenciales
-        String url  = "jdbc:sqlserver://254401.database.windows.net:1433;databaseName=BQC;encrypt=true;trustServerCertificate=false;loginTimeout=30";
+        String url  = "jdbc:sqlserver://254401.database.windows.net:1433;databaseName=LG;encrypt=true;trustServerCertificate=false;loginTimeout=30";
         String user = "GsBetaUser@254401";
         String pass = "GhtQaUserAllC++--44";
 

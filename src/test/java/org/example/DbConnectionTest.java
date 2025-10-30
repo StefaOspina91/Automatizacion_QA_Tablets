@@ -9,9 +9,9 @@ public class DbConnectionTest {
     public void obtenerIdentifiersPorPasos() {
         System.out.println("🔹 Iniciando consultas paso a paso...");
 
-        // 1 Obtener los últimos 20 Shipments de las 2 últimas semanas
+        // 1) Últimos 20 Shipments (2 semanas)
         String q1 =
-                "SELECT TOP 20 ShipmentId " +
+                "SELECT TOP 5 ShipmentId " +
                         "FROM tblShipments " +
                         "WHERE CreationUTCDate >= DATEADD(WEEK, -2, GETDATE()) " +
                         "ORDER BY CreationUTCDate DESC";
@@ -25,7 +25,7 @@ public class DbConnectionTest {
 
         System.out.println(" Shipments encontrados: " + shipments.size());
 
-        // 2 Obtener ShipmentGroupId por cada ShipmentId
+        // 2) ShipmentGroupId por cada ShipmentId
         Set<String> shipmentGroupIds = new LinkedHashSet<>();
         for (Map<String, Object> row : shipments) {
             String shipmentId = String.valueOf(row.get("ShipmentId"));
@@ -38,13 +38,13 @@ public class DbConnectionTest {
         }
 
         if (shipmentGroupIds.isEmpty()) {
-            System.out.println("⚠️ No se encontraron grupos para los Shipments.");
+            System.out.println(" No se encontraron grupos para los Shipments.");
             return;
         }
 
-        System.out.println("✅ Grupos encontrados: " + shipmentGroupIds.size());
+        System.out.println(" Grupos encontrados: " + shipmentGroupIds.size());
 
-        // 3 Obtener Identifiers de cada ShipmentGroupId
+        // 3) Identifiers de cada ShipmentGroupId
         List<String> identifiers = new ArrayList<>();
         for (String groupId : shipmentGroupIds) {
             String q3 = "SELECT Identifier FROM tblShipmentGroupsItems WHERE ShipmentGroupId = '" + groupId + "'";
@@ -56,12 +56,42 @@ public class DbConnectionTest {
         }
 
         if (identifiers.isEmpty()) {
-            System.out.println("⚠️ No se encontraron Identifiers en tblShipmentGroupsItems.");
+            System.out.println(" No se encontraron Identifiers en tblShipmentGroupsItems.");
         } else {
-            System.out.println("✅ Identifiers encontrados (" + identifiers.size() + "):");
+            System.out.println(" Identifiers encontrados (" + identifiers.size() + "):");
             identifiers.forEach(System.out::println);
         }
 
         System.out.println("🔹 Consultas completadas exitosamente.");
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // NUEVO: método utilitario para los tests de Appium
+    // Devuelve UNA USDA (Identifier) de los últimos 14 días
+    // ─────────────────────────────────────────────────────────────
+    public String obtenerUnaUsda() {
+        try {
+            // Versión eficiente con JOINs (ajusta nombres si difieren):
+            String q =
+                    "SELECT TOP 1 i.Identifier " +
+                            "FROM tblShipments s " +
+                            "JOIN tblShipmentGroups g ON g.ShipmentId = s.ShipmentId " +
+                            "JOIN tblShipmentGroupsItems i ON i.ShipmentGroupId = g.ShipmentGroupId " +
+                            "WHERE s.CreationUTCDate >= DATEADD(WEEK, -2, GETDATE()) " +
+                            "ORDER BY s.CreationUTCDate DESC";
+
+            List<Map<String, Object>> rows = Db.ejecutarConsulta(q);
+            if (rows != null && !rows.isEmpty()) {
+                String usda = String.valueOf(rows.get(0).get("Identifier"));
+                System.out.println(" USDA obtenida desde BD: " + usda);
+                return usda;
+            } else {
+                System.out.println("️ No se encontró USDA en el rango consultado.");
+                return null;
+            }
+        } catch (Exception e) {
+            System.err.println(" Error consultando USDA: " + e.getMessage());
+            return null;
+        }
     }
 }

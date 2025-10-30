@@ -15,11 +15,22 @@ public class BaseTest {
 
     public void setUp() {
         DesiredCapabilities caps = new DesiredCapabilities();
+
+        // ==== PARCHE MÍNIMO ====
+        // Appium 2 / java-client 9 usan prefijo "appium:" en las capabilities
         caps.setCapability("platformName", "Android");
-        caps.setCapability("deviceName", "emulator-5554");
-        caps.setCapability("automationName", "UiAutomator2");
-        caps.setCapability("appPackage", "com.ght.QualityManagementApp");
-        caps.setCapability("appActivity", "com.ght.QualityManagementApp.MainActivity");
+        caps.setCapability("appium:automationName", "UiAutomator2");
+        caps.setCapability("appium:deviceName", "emulator-5554");
+        caps.setCapability("appium:udid", "emulator-5554");
+        caps.setCapability("appium:noReset", true);
+        caps.setCapability("appium:newCommandTimeout", 300);
+
+        // Usa el case EXACTO confirmado por adb:
+        caps.setCapability("appium:appPackage", "com.ght.QualityManagementApp");
+        caps.setCapability("appium:appActivity", "com.ght.QualityManagementApp.MainActivity");
+        // Espera por posibles pantallas iniciales (splash, main, etc.)
+        caps.setCapability("appium:appWaitActivity", "*.MainActivity,*.Splash*,*.*");
+        // ======================
 
         try {
             driver = new AndroidDriver(new URL("http://127.0.0.1:4723/"), caps);
