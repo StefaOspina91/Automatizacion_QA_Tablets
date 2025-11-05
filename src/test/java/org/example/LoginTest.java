@@ -88,42 +88,49 @@ public class LoginTest extends BaseTest {
     private void clicBuscar() {
         System.out.println("Intentando hacer clic en botón 'Buscar'...");
 
+        // Asegura que los controles de abajo estén visibles (el de arriba se mueve)
+        asegurarControlesInferiores();
+
+        // Localiza el botón "Buscar" inferior (más abajo en Y)
+        WebElement boton = null;
         try {
-            // --- Espera a que el botón Buscar esté visible y clickable ---
-            By buscarButton = AppiumBy.androidUIAutomator(
-                    "new UiSelector().textContains(\"Buscar\")"); // más flexible que text()
+            // Espera a que al menos algún 'Buscar' exista
+            new WebDriverWait(driver, Duration.ofSeconds(8))
+                    .until(d -> !driver.findElements(
+                            AppiumBy.androidUIAutomator("new UiSelector().text(\"Buscar\")")).isEmpty());
+            boton = findBuscarInferior();
+        } catch (Exception ignored) {}
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            WebElement boton = wait.until(ExpectedConditions.elementToBeClickable(buscarButton));
-
-            boton.click();
-            System.out.println("✅ Clic en botón 'Buscar' ejecutado correctamente.");
-
-        } catch (Exception e1) {
-            System.err.println("⚠️ No se pudo hacer clic en botón 'Buscar' con UiSelector. Intentando fallback...");
-
-            // Fallback usando XPath del inspector (por si el TextView no es clickable)
+        if (boton != null) {
             try {
-                By xpathBuscar = AppiumBy.xpath("(//android.widget.TextView[@text='Buscar'])[2]");
-                WebElement label = new WebDriverWait(driver, Duration.ofSeconds(5))
-                        .until(ExpectedConditions.presenceOfElementLocated(xpathBuscar));
+                new WebDriverWait(driver, Duration.ofSeconds(5))
+                        .until(ExpectedConditions.elementToBeClickable(boton));
+            } catch (Exception ignored) { /* seguimos con clickSmart */ }
 
-                // Si el TextView no tiene clickable, subimos al padre
-                WebElement botonPadre = null;
-                try {
-                    botonPadre = label.findElement(AppiumBy.xpath("./ancestor::*[@clickable='true'][1]"));
-                } catch (Exception ignored) {}
+            clickSmart(boton);
+            System.out.println("✅ Clic en botón 'Buscar' (inferior) ejecutado.");
+            return;
+        }
 
-                WebElement target = (botonPadre != null) ? botonPadre : label;
-                target.click();
+        // Fallback extremo si no lo encontró (coordenadas aproximadas abajo-derecha)
+        try {
+            org.openqa.selenium.Dimension win = driver.manage().window().getSize();
+            int x = (int) (win.width * 0.90);
+            int y = (int) (win.height * 0.92);
 
-                System.out.println("✅ Clic en botón 'Buscar' (fallback XPath) ejecutado.");
-            } catch (Exception e2) {
-                System.err.println("❌ No se logró hacer clic en 'Buscar': " + e2.getMessage());
-                tapCentroFallback(); // último recurso
-            }
+            PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH, "finger");
+            Sequence tap = new Sequence(finger, 1);
+            tap.addAction(finger.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), x, y));
+            tap.addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg()));
+            tap.addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
+            driver.perform(List.of(tap));
+
+            System.out.println("✅ Tap por coordenadas en zona de botón 'Buscar' inferior.");
+        } catch (Exception e) {
+            System.err.println("❌ No se logró hacer clic en 'Buscar': " + e.getMessage());
         }
     }
+
     private void tapCentroFallback() {
         try {
             WebElement posible = driver.findElement(
@@ -148,6 +155,43 @@ public class LoginTest extends BaseTest {
 
 
     // -------------------- Localizadores simples --------------------
+    /** Quita foco del buscador superior y fuerza a que aparezcan los controles inferiores. */
+    private void asegurarControlesInferiores() {
+        // Toca una zona segura en el centro para quitar foco del input superior
+        tapZonaSegura();           // ya lo tienes; si no, te lo dejo abajo
+        dormir(250);
+
+        // Empuja un pelín hacia abajo para forzar re-layout si hiciera falta
+        try {
+            org.openqa.selenium.Dimension win = driver.manage().window().getSize();
+            int cx = win.width / 2;
+            int y1 = (int) (win.height * 0.45);
+            int y2 = (int) (win.height * 0.55);
+
+            PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH, "nudge");
+            Sequence swipe = new Sequence(finger, 1);
+            swipe.addAction(finger.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), cx, y1));
+            swipe.addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg()));
+            swipe.addAction(finger.createPointerMove(Duration.ofMillis(200), PointerInput.Origin.viewport(), cx, y2));
+            swipe.addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
+            driver.perform(List.of(swipe));
+        } catch (Exception ignored) {}
+
+        dormir(200);
+    }
+    private void tapZonaSegura() {
+        org.openqa.selenium.Dimension win = driver.manage().window().getSize();
+        int x = (int) (win.width * 0.50);
+        int y = (int) (win.height * 0.40);
+        PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH, "finger");
+        Sequence tap = new Sequence(finger, 1);
+        tap.addAction(finger.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), x, y));
+        tap.addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg()));
+        tap.addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
+        driver.perform(List.of(tap));
+    }
+    private void dormir(long ms) { try { Thread.sleep(ms); } catch (InterruptedException ignored) {} }
+
 
     private WebElement localizarCardQualityControl() {
         // 1) por texto “Quality” y “Control” y su ancestro clickable
@@ -185,8 +229,31 @@ public class LoginTest extends BaseTest {
 
         return waitLong.until(d -> null); // Timeout -> falla clara
     }
+    /** Devuelve el elemento 'Buscar' que está más abajo (botón inferior), evitando el de la barra superior. */
+    private WebElement findBuscarInferior() {
+        List<WebElement> todos = driver.findElements(
+                AppiumBy.androidUIAutomator("new UiSelector().text(\"Buscar\")"));
+
+        if (todos.isEmpty()) return null;
+
+        // Elegimos el que tenga mayor coordenada Y (más cerca de la parte inferior)
+        WebElement elegido = todos.get(0);
+        int maxY = elegido.getRect().y;
+
+        for (WebElement e : todos) {
+            int y = e.getRect().y;
+            if (y > maxY) {
+                maxY = y;
+                elegido = e;
+            }
+        }
+        return elegido;
+    }
+
 
     // -------------------- Helpers mínimos reutilizables --------------------
+
+
 
     /** Devuelve el primer elemento visible que matchee alguno de los locators (o null). */
     private WebElement firstVisible(By... locators) {
