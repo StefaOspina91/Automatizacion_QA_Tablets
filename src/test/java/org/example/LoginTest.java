@@ -57,6 +57,13 @@ public class LoginTest extends BaseTest {
             escribirUsda(usda);
             clicBuscar();
 
+            // Espera un poco a que se renderice la orden
+            Thread.sleep(800);
+
+            // Clic en pestaña Inspección
+            clicInspeccion();
+
+
             System.out.println("✅ Flujo completo OK");
 
         } catch (Exception e) {
@@ -130,6 +137,119 @@ public class LoginTest extends BaseTest {
             System.err.println("❌ No se logró hacer clic en 'Buscar': " + e.getMessage());
         }
     }
+    // === 1) Click robusto en "Inspección" ===
+    private void clicInspeccion() {
+        System.out.println("Intentando hacer clic en la pestaña 'Inspección'…");
+
+        // Asegura que ya estás en detalle tras Buscar
+        esperarVistaDetalle();
+
+        // Opcional: sube al principio por si quedó scrolleado
+        try {
+            driver.findElement(AppiumBy.androidUIAutomator(
+                    "new UiScrollable(new UiSelector().scrollable(true)).setAsVerticalList().scrollToBeginning(2)"));
+        } catch (Exception ignored) {}
+
+        // 1) Localiza label "Inspección" con tolerancia a tildes/mayúsculas
+        WebElement label = new WebDriverWait(driver, Duration.ofSeconds(8))
+                .until(drv -> {
+                    List<WebElement> c1 = drv.findElements(
+                            AppiumBy.androidUIAutomator("new UiSelector().textContains(\"Inspecci\")"));
+                    if (!c1.isEmpty()) return c1.get(0);
+                    List<WebElement> c2 = drv.findElements(
+                            AppiumBy.xpath("//*[contains(@text,'Inspección') or contains(@text,'Inspecci')]"));
+                    return c2.isEmpty() ? null : c2.get(0);
+                });
+
+        // 2) Busca ancestro clickable (hasta 6 niveles)
+        WebElement objetivo = label;
+        try {
+            WebElement n = label;
+            for (int i = 0; i < 6; i++) {
+                if (Boolean.parseBoolean(n.getAttribute("clickable"))) {
+                    objetivo = n;
+                    break;
+                }
+                n = n.findElement(AppiumBy.xpath(".."));
+            }
+        } catch (Exception ignored) {}
+
+        // 3) Click; si no responde, tap con offset hacia arriba (hit-area suele ser del contenedor)
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(3))
+                    .until(ExpectedConditions.elementToBeClickable(objetivo))
+                    .click();
+            System.out.println("➡️ Click sobre contenedor/label de 'Inspección'.");
+        } catch (Exception e) {
+            System.out.println("⚠️ Click falló; aplicando tap táctil con pequeño offset…");
+            tapOffset(label, 0, -20); // 20 px hacia arriba respecto al label
+        }
+
+        // 4) Validación flexible del contenido de Inspección
+        validarContenidoInspeccion();
+        System.out.println("✅ Pestaña 'Inspección' activa/visible.");
+    }
+
+    private void validarContenidoInspeccion() {
+        WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(8));
+
+        // Primer intento: sin mover scroll
+        boolean ok = w.until(drv ->
+                !drv.findElements(AppiumBy.androidUIAutomator(
+                        "new UiSelector().textContains(\"General\")")).isEmpty()
+                        || !drv.findElements(AppiumBy.androidUIAutomator(
+                        "new UiSelector().textContains(\"Reporte de Calidad\")")).isEmpty()
+                        || !drv.findElements(AppiumBy.androidUIAutomator(
+                        "new UiSelector().textContains(\"Producto\")")).isEmpty()
+        );
+
+        if (!ok) {
+            // Sube por si los encabezados quedaron fuera de viewport y reintenta
+            try {
+                driver.findElement(AppiumBy.androidUIAutomator(
+                        "new UiScrollable(new UiSelector().scrollable(true)).setAsVerticalList().scrollToBeginning(2)"));
+            } catch (Exception ignored) {}
+
+            new WebDriverWait(driver, Duration.ofSeconds(6)).until(drv ->
+                    !drv.findElements(AppiumBy.androidUIAutomator(
+                            "new UiSelector().textContains(\"General\")")).isEmpty()
+                            || !drv.findElements(AppiumBy.androidUIAutomator(
+                            "new UiSelector().textContains(\"Reporte de Calidad\")")).isEmpty()
+                            || !drv.findElements(AppiumBy.androidUIAutomator(
+                            "new UiSelector().textContains(\"Producto\")")).isEmpty()
+            );
+        }
+    }
+
+    // === 3) Tap utilitario con offset relativo al elemento ===
+    private void tapOffset(WebElement el, int dx, int dy) {
+        Rectangle r = el.getRect();
+        int x = r.x + r.width / 2 + dx;
+        int y = r.y + r.height / 2 + dy;
+
+        PointerInput finger = new PointerInput(PointerInput.Kind.TOUCH, "finger");
+        Sequence tap = new Sequence(finger, 1);
+        tap.addAction(finger.createPointerMove(Duration.ZERO, PointerInput.Origin.viewport(), x, y));
+        tap.addAction(finger.createPointerDown(PointerInput.MouseButton.LEFT.asArg()));
+        tap.addAction(finger.createPointerUp(PointerInput.MouseButton.LEFT.asArg()));
+        driver.perform(List.of(tap));
+    }
+
+
+    // Espera a que cargue la vista de detalle de la orden tras pulsar Buscar
+    private void esperarVistaDetalle() {
+        WebDriverWait w = new WebDriverWait(driver, Duration.ofSeconds(10));
+        // Usa varios textos para ser tolerante a cambios/tildes
+        w.until(d ->
+                !driver.findElements(AppiumBy.androidUIAutomator(
+                        "new UiSelector().textContains(\"Orden De Producción\")")).isEmpty()
+                        || !driver.findElements(AppiumBy.androidUIAutomator(
+                        "new UiSelector().textContains(\"Orden de Produccion\")")).isEmpty()  // sin tilde
+                        || !driver.findElements(AppiumBy.androidUIAutomator(
+                        "new UiSelector().textContains(\"Eventos USDA\")")).isEmpty()
+        );
+    }
+
 
     private void tapCentroFallback() {
         try {
