@@ -49,7 +49,7 @@ public class LoginTest extends BaseTest {
             aceptarPermisosSiAparecen();
 
             // 3) Seleccionar compañía
-            reportsPage.selectCompany("BQC");
+            reportsPage.selectCompany("QU");
 
             // 4) Traer USDA, escribir y buscar
             String usda = new org.example.infra.db.DbConnectionTest().obtenerUnaUsda();

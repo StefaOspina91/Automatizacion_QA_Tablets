@@ -26,8 +26,8 @@ public class BaseTest {
         caps.setCapability("appium:newCommandTimeout", 300);
 
         // Usa el case EXACTO confirmado por adb:
-        caps.setCapability("appium:appPackage", "com.ght.QualityManagementApp");
-        caps.setCapability("appium:appActivity", "com.ght.QualityManagementApp.MainActivity");
+        caps.setCapability("appium:appPackage", "com.ght.QualityManagementApp.test");
+        caps.setCapability("appium:appActivity", "com.ght.QualityManagementApp.test.MainActivity");
         // Espera por posibles pantallas iniciales (splash, main, etc.)
         caps.setCapability("appium:appWaitActivity", "*.MainActivity,*.Splash*,*.*");
         // ======================
